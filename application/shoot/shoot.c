@@ -23,7 +23,7 @@ static referee_info_t *referee_data; // 裁判系统数据,用于读取枪口热
 static float hibernate_time = 0, dead_time = 0;
 
 // 连发目标射频(发/秒),仿中科大Target_Ammo_Shoot_Frequency,默认用此速度,可Ozone实时调
-static float target_ammo_shoot_frequency = 20.0f;
+static float target_ammo_shoot_frequency = 1.0f;
 
 volatile float dbg_loader_current_ref;
 volatile float dbg_loader_current_measure;
@@ -88,54 +88,54 @@ void ShootInit()
 
             .outer_loop_type = SPEED_LOOP,
             .close_loop_type = SPEED_LOOP | CURRENT_LOOP,
-            .motor_reverse_flag = MOTOR_DIRECTION_REVERSE, // 注意方向设置为发射的出弹方向
+            .motor_reverse_flag = MOTOR_DIRECTION_NORMAL, // 注意方向设置为发射的出弹方向
         },
         .motor_type = M3508};
-    friction_config.can_init_config.tx_id = FRICTION_L_TX_ID,
+    friction_config.can_init_config.tx_id = 2,
     friction_l = DJIMotorInit(&friction_config);
 
-    friction_config.can_init_config.tx_id = FRICTION_R_TX_ID; // 右摩擦轮,改txid和方向就行
-    friction_config.controller_setting_init_config.motor_reverse_flag = MOTOR_DIRECTION_NORMAL;
+    friction_config.can_init_config.tx_id = 1; // 右摩擦轮,改txid和方向就行
+    friction_config.controller_setting_init_config.motor_reverse_flag = MOTOR_DIRECTION_REVERSE;
     friction_r = DJIMotorInit(&friction_config);
 
     // 拨盘电机
     Motor_Init_Config_s loader_config = {
         .can_init_config = {
-            .can_handle = &hcan2,
-            .tx_id = 3,
+            .can_handle = &hcan1,
+            .tx_id = 7,
         },
         .controller_param_init_config = {
             .angle_PID = {
                 // 如果启用位置环来控制发弹,需要较大的I值保证输出力矩的线性度否则出现接近拨出的力矩大幅下降
                 .Kp = 10, // 10
-                .Ki = 0,
+                .Ki = 5,
                 .Kd = 0,
                 .MaxOut = 200,
             },
             .speed_PID = {
-                .Kp = 3, // 10
+                .Kp = 10, // 10
                 .Ki = 1, // 1
                 .Kd = 0,
                 .Improve = PID_Integral_Limit,
-                .IntegralLimit = 5000,
-                .MaxOut = 5000,
+                .IntegralLimit = 10000,
+                .MaxOut = 10000,
             },
             .current_PID = {
-                .Kp = 0.7, // 0.7
+                .Kp = 2, // 0.7
                 .Ki = 0.1, // 0.1
                 .Kd = 0,
                 .Improve = PID_Integral_Limit,
-                .IntegralLimit = 5000,
-                .MaxOut = 5000,
+                .IntegralLimit = 10000,
+                .MaxOut = 10000,
             },
         },
         .controller_setting_init_config = {
             .angle_feedback_source = MOTOR_FEED, .speed_feedback_source = MOTOR_FEED,
             .outer_loop_type = SPEED_LOOP, // 初始化成SPEED_LOOP,让拨盘停在原地,防止拨盘上电时乱转
             .close_loop_type = CURRENT_LOOP | SPEED_LOOP,
-            .motor_reverse_flag = MOTOR_DIRECTION_REVERSE, // 注意方向设置为拨盘的拨出的击发方向
+            .motor_reverse_flag = MOTOR_DIRECTION_NORMAL, // 注意方向设置为拨盘的拨出的击发方向
         },
-        .motor_type = M2006 // 英雄使用m3508
+        .motor_type = M3508 // 英雄使用m3508
     };
     loader = DJIMotorInit(&loader_config);
 
@@ -202,8 +202,8 @@ static void FrictionOutput()
         DJIMotorSetRef(friction_r, 42000);
         break;
     default:
-        DJIMotorSetRef(friction_l, 42000);
-        DJIMotorSetRef(friction_r, 42000);
+        DJIMotorSetRef(friction_l, 40000);
+        DJIMotorSetRef(friction_r, 40000);
         break;
     }
 }
@@ -271,7 +271,7 @@ static void ShootOutput()
         {
             // 余量降低,在目标射频与可持续射频(冷却速率/每发热量)之间线性过渡
             // 余量=SLOWDOWN阈值时为target,余量=CEASEFIRE阈值时为冷却对应的可持续射频
-            float sustain = (float)referee_data->GameRobotState.shooter_barrel_cooling_value / HEAT_PER_BULLET;
+            float sustain = (float)referee_data->GameRobotState.shooter_barrel_cooling_value / HEAT_PER_BULLET_HERO;
             now_rate = (target_ammo_shoot_frequency * (HEAT_CEASEFIRE_THRESHOLD - heat_remain) + sustain * (heat_remain - HEAT_SLOWDOWN_THRESHOLD)) / (HEAT_CEASEFIRE_THRESHOLD - HEAT_SLOWDOWN_THRESHOLD);
         }
         else
@@ -355,7 +355,7 @@ void ShootTask()
 
     // 卡弹处理状态机: 仿中科大Class_Booster
     // 正常/嫌疑态执行正常发射输出; 确认/处理态由FSM接管拨盘回拨, 摩擦轮保持上次转速
-    ShootJamFSM();
+    //ShootJamFSM();
     if (jam_status == JAM_NORMAL || jam_status == JAM_SUSPECT)
         ShootOutput();
 

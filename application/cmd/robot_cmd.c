@@ -277,7 +277,7 @@ static void RemoteControlSet()
     // When right switch is mid, gimbal in angle mode and chassis follow gimbal yaw
     else if (switch_is_mid(rc_data[TEMP].rc.switch_right)) 
     {
-        chassis_cmd_send.chassis_mode = CHASSIS_FOLLOW_GIMBAL_YAW;
+        chassis_cmd_send.chassis_mode = CHASSIS_NO_FOLLOW;
         gimbal_cmd_send.gimbal_mode = GIMBAL_ANGLE_MODE;
     }
 
@@ -379,7 +379,7 @@ static void MouseKeySet()
     else if (qe_spin_mode == 2)
         chassis_cmd_send.chassis_mode = CHASSIS_ROTATE_CLOCKWISE;
     else
-        chassis_cmd_send.chassis_mode = CHASSIS_FOLLOW_GIMBAL_YAW;
+        chassis_cmd_send.chassis_mode = CHASSIS_NO_FOLLOW;
 
     // 鼠标左右键长按状态机更新: 左键长按->连发, 右键长按->视觉自瞄模式
     PressHoldFSM_Update(&mouse_l_fsm, rc_data[TEMP].mouse.press_l);

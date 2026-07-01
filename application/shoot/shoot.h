@@ -2,9 +2,9 @@
 #define SHOOT_H
 
 // 连发热量控制参数 (实测后修改)
-#define HEAT_PER_BULLET          10.0f  // 17mm 弹丸每发热量
-#define HEAT_SLOWDOWN_THRESHOLD  40.0f  // 余量高于此值全速发射
-#define HEAT_CEASEFIRE_THRESHOLD 20.0f  // 余量低于此值停火
+#define HEAT_PER_BULLET_HERO     100.0f  // 17mm 弹丸每发热量
+#define HEAT_SLOWDOWN_THRESHOLD  150.0f  // 余量高于此值全速发射
+#define HEAT_CEASEFIRE_THRESHOLD 120.0f  // 余量低于此值停火
 
 // 卡弹处理(anti-jamming)参数, 仿中科大 (实测后修改)
 #define JAM_CURRENT_THRESHOLD  2000     // 拨盘堵转电流阈值(real_current绝对值), 超过视为卡弹嫌疑 -10A~0~10A -> -10000~0~10000 
