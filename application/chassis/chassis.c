@@ -56,7 +56,7 @@ static DJIMotorInstance *motor_lf, *motor_rf, *motor_lb, *motor_rb; // left righ
 
 /* 变速小陀螺(随机/正弦变速自旋)参数:转速在 BASE±AMP 之间按正弦波动,
    让底盘相对云台的角位置不可预测,降低被命中概率。AMP < BASE 保证不反向、不停转。 */
-#define SPIN_WZ_BASE 800.0f // 自旋基准转速幅值(原定值)
+#define SPIN_WZ_BASE 300.0f // 自旋基准转速幅值(原定值)
 #define SPIN_WZ_AMP  0.0f // 正弦变速幅度(wz 在 550~1050 之间摆动)
 #define SPIN_WZ_FREQ 0.0f   // 变速频率(Hz),周期≈1.7s,越大变速越急促
 
@@ -284,7 +284,7 @@ void ChassisTask()
         chassis_cmd_recv.wz = 0;
         break;
     case CHASSIS_FOLLOW_GIMBAL_YAW:
-        chassis_cmd_recv.wz = -PIDCalculate(&chassis_follow_PID, chassis_cmd_recv.offset_angle, 0.0f); 
+        chassis_cmd_recv.wz = PIDCalculate(&chassis_follow_PID, chassis_cmd_recv.offset_angle, 0.0f); 
         // wz has opposite direction with offset_angle, so opposite sign for output
         break;
     case CHASSIS_ROTATE_CLOCKWISE: // 变速小陀螺(顺时针),转速正弦波动降低被命中概率;800大概100rpm 再大会吞线速度
